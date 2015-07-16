@@ -12,17 +12,18 @@
 # Define parametros requeridos
 param(
 [Parameter(Position=0,Mandatory=$true)]
-[string]$username
+[string]$username,
+[Parameter(Position=1)]
+[string]$oofmsg
 )
 
 $ErrorActionPreference = "Stop"
 
 # Importação dos modulos
+$ExSession = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri http://morpheus.sp01.local/PowerShell/ -AllowRedirection -Authentication Kerberos
+[void](Import-PSSession $ExSession)
 Import-Module ActiveDirectory
 Import-Module Lync
-
-#$ExSession = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri http://morpheus.sp01.local/PowerShell/ -AllowRedirection
-#[void](Import-PSSession $ExSession)
 
 
 # Definição variaveis gerais
@@ -30,10 +31,7 @@ $GC = 'sp01.local:3268'
 $ADUser = Get-ADUser -Filter {(samAccountName -eq $username)} -properties canonicalname -Server $GC
 $domain = $ADUser.CanonicalName.Split('/',2)[0]
 $dc = Get-ADDomainController -Discover -DomainName $domain -SiteName Matriz | select -ExpandProperty hostname
-$oofmsg = 'Estou de férias'
 $desc = 'Ferias/Afastamento - ' + (Get-Date)
-
-
 
    
 # Verificação de usuario existente
@@ -41,6 +39,16 @@ if (-not $ADUser) {
     write-output "Usuário não existe!"
 }
 else{
+
+    # Habilitando OOF (Out-Of-Office) caso não esteja habilitado
+    if ($oofmsg) {
+        
+        # Verifica estado OOF do usuario
+        if ((Get-MailboxAutoReplyConfiguration -Identity $username -DomainController $dc).autoreplystate -eq 'Disabled') {
+            Set-MailboxAutoReplyConfiguration -Identity $username -InternalMessage $oofmsg -ExternalMessage $oofmsg -AutoReplyState:Enabled -DomainController $dc
+        }
+    }
+
     # Desabilita a conta no AD
     Disable-ADAccount -Identity $username -Server $dc
     Set-ADObject -Identity $aduser.ObjectGUID -Description $desc -Server $dc
@@ -48,12 +56,6 @@ else{
     # Desabilita a conta no Lync
     Set-CsUser -Identity $username -Enabled $false -DomainController $dc
 
-    # Habilitando OOF (Out-Of-Office) caso não esteja habilitado
-    #if ((Get-MailboxAutoReplyConfiguration -Identity $username).autoreplystate -eq 'Disabled') {
-    #    Set-MailboxAutoReplyConfiguration -Identity $username -InternalMessage $oofmsg -ExternalMessage $oofmsg -AutoReplyState:Enabled -DomainController $dc
-    #}
-
     # Mensagem de retorno
     Write-Output "Usuário desabilitado!"
-
 }
