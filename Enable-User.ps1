@@ -19,10 +19,11 @@ param(
 $ErrorActionPreference = "Stop"
 
 # Importação dos modulos
+$ExSession = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri http://morpheus.sp01.local/PowerShell/ -Authentication Kerberos -AllowRedirection
+[void](Import-PSSession $ExSession)
 Import-Module ActiveDirectory
 Import-Module Lync
-#$ExSession = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri http://morpheus.sp01.local/PowerShell/ -AllowRedirection
-#[void](Import-PSSession $ExSession)
+
 
 # Definição variaveis gerais
 $GC = 'sp01.local:3268'
@@ -45,7 +46,7 @@ else{
     Set-CsUser -Identity $username -Enabled $true -DomainController $dc
 
     # Desabilitando OOF (Out-Of-Office)
-    #Set-MailboxAutoReplyConfiguration -Identity $username -AutoReplyState:Disabled -DomainController $dc
+    Set-MailboxAutoReplyConfiguration -Identity $username -AutoReplyState:Disabled -DomainController $dc
     
     # Mesangem de retorno
     Write-Output "Usuário reabilitado!"
