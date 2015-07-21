@@ -20,8 +20,8 @@ param(
 $ErrorActionPreference = "Stop"
 
 # Importação dos modulos
-$ExSession = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri http://morpheus.sp01.local/PowerShell/ -AllowRedirection -Authentication Kerberos
-[void](Import-PSSession $ExSession)
+$ExSession = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri http://morpheus.sp01.local/PowerShell/ -AllowRedirection
+[void](Import-PSSession $ExSession)        
 Import-Module ActiveDirectory
 Import-Module Lync
 
@@ -42,7 +42,7 @@ else{
 
     # Habilitando OOF (Out-Of-Office) caso não esteja habilitado
     if ($oofmsg) {
-        
+
         # Verifica estado OOF do usuario
         if ((Get-MailboxAutoReplyConfiguration -Identity $username -DomainController $dc).autoreplystate -eq 'Disabled') {
             Set-MailboxAutoReplyConfiguration -Identity $username -InternalMessage $oofmsg -ExternalMessage $oofmsg -AutoReplyState:Enabled -DomainController $dc
@@ -59,3 +59,6 @@ else{
     # Mensagem de retorno
     Write-Output "Usuário desabilitado!"
 }
+
+# Remove a sessão aberta com o Exchange
+Remove-PSSession $ExSession
