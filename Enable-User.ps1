@@ -50,5 +50,7 @@ else{
     
     # Mesangem de retorno
     Write-Output "Usuário reabilitado!"
-
 }
+
+# Remove a sessão aberta com o Exchange
+Remove-PSSession $ExSession
