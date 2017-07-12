@@ -1,3 +1,8 @@
+# Lista os jobs do NetBackup que apresentaram falha nas ultimas 24 horas
+# e retorna a saida pra o check_mk com a contagem total e a lista de clients
+
+
+
 # Argumentos
 Param(
     [Parameter(Mandatory=$true,Position=1)][ValidateRange(1,20000)][int]$Warning,
