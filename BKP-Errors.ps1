@@ -1,5 +1,5 @@
 # Lista os jobs do NetBackup que apresentaram falha nas ultimas 24 horas
-# e retorna a saida pra o check_mk com a contagem total e a lista de clients
+# e retorna a saida para o check_mk com a contagem total de jobs e a lista de clients
 
 
 
