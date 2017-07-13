@@ -72,3 +72,7 @@ elseif ($totalFalhas -ge $critical)
     Write-Output "$preCritical $sufRetorno $ClientListTotal"
     Exit 2
 }
+else
+{
+    Write-Output "OK - $sufRetorno $ClientListTotal" 
+}
