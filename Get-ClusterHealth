@@ -1,0 +1,49 @@
+$vCenter = "vcs-totvs01.datacenter.local"
+
+#if ($cred -eq $null) {
+#    $cred = Get-Credential
+#}
+
+#Connect-VIServer $vCenter -Credential $cred
+#[float]$ClusterHealthTreshold
+
+Foreach ($Cluster in (Get-Cluster)){
+
+    $ClusterView = $Cluster | Get-View
+    $HostsPerCluster = ($ClusterView.Host).count
+    $VMsPerCluster = ($Cluster | Get-VM).count   
+    
+ 
+    # Only executes in clusters that are NOT empty
+    if (($HostsPerCluster -gt 0) -and ($VMsPerCluster -gt 0)) {
+
+        [int]$CPUUsagePercentPerCluster = $Cluster | Get-Stat -Stat cpu.usage.average -RealTime | Measure-Object Value -Average | select -ExpandProperty Average
+        [int]$MemoryUsagePercentPerCluster = $Cluster | Get-Stat -Stat mem.usage.average -RealTime | Measure-Object Value -Average | select -ExpandProperty Average
+        [int]$ClusterHealthTreshold = (($HostsPerCluster - 1)/$HostsPerCluster)*100
+        $HealthDanger = (($MemoryUsagePercentPerCluster -ge $ClusterHealthTreshold) -or ($CPUUsagePercentPerCluster -ge $ClusterHealthTreshold))
+        $HealthWarning = ((($MemoryUsagePercentPerCluster -ge $ClusterHealthTreshold *(1-10/100)) -and ($MemoryUsagePercentPerCluster -lt $ClusterHealthTreshold)) -or (($CPUUsagePercentPerCluster -ge $ClusterHealthTreshold *(1-10/100)) -and ($CPUUsagePercentPerCluster -lt $ClusterHealthTreshold)))
+        
+        
+        If ($HealthDanger) {
+            $ClusterHealthStatus = "Danger"
+        }
+        elseif ($HealthWarning)  {
+            $ClusterHealthStatus = "Warning"
+        } 
+        else {
+            $ClusterHealthStatus = "Health"
+        }
+        
+        $Results = [ordered]@{
+            ClusterName = $Cluster.Name
+            NumberOfHosts = $HostsPerCluster
+            NumberOfVms = $VMsPerCluster
+            MemoryUsagePercent = $MemoryUsagePercentPerCluster
+            CPUUsagePercent = $CPUUsagePercentPerCluster
+            ClusterHealthTresholdPercent = $ClusterHealthTreshold 
+            ClusterHealthStatus = $ClusterHealthStatus
+        } 
+
+        New-Object -TypeName PSObject -Property $Results
+    }
+}
