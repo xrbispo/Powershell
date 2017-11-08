@@ -1,11 +1,14 @@
-$vCenter = "vcs-totvs01.datacenter.local"
+#####
+Connects to a VMware vCenter, gets CPU and Memory usage of the clusters, compares to a treshold (n-1) and outputs a status
+#####
 
-#if ($cred -eq $null) {
-#    $cred = Get-Credential
-#}
+$vCenter = "youVcenterServerl"
 
-#Connect-VIServer $vCenter -Credential $cred
-#[float]$ClusterHealthTreshold
+if ($cred -eq $null) {
+    $cred = Get-Credential
+}
+
+Connect-VIServer $vCenter -Credential $cred
 
 Foreach ($Cluster in (Get-Cluster)){
 
